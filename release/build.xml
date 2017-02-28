@@ -37,6 +37,11 @@
   <property name="restcomm-olympus.download.url" value="https://mobicents.ci.cloudbees.com/job/Olympus/lastSuccessfulBuild/artifact/target/olympus.war"/>
   <property name="restcomm-olympus.path" value="${configuration.directory}/olympus.war"/>
 
+  <!-- RVD retrieval properties -->
+  <property name="restcomm-rvd.download.url" value="https://mobicents.ci.cloudbees.com/view/VisualDesigner/job/VisualDesigner/lastSuccessfulBuild/artifact/designer/target/restcomm-rvd.war"/>
+  <property name="restcomm-rvd.path" value="${configuration.directory}/restcomm-rvd.war"/>
+
+
   <property name="release.build.goals" value="clean install -Dmaven.test.skip=true"/>
   <property name="release.build.test.goals" value="clean install -Dmaven.test.failure.ignore=true"/>
   <property name="release.ts.deploy.goals" value="clean deploy"/>
@@ -121,6 +126,16 @@
     <move file="${base.dir}/olympus.war" todir="${configuration.directory}"/>
   </target>
 
+  <!-- RVD -->
+  <available file="${restcomm-rvd.path}" property="got.rvd"/>
+  <target name="get-rvd" unless="got.rvd">
+    <echo>Downloading latest version of Visual Designer</echo>
+    <exec executable="wget" failonerror="true">
+      <arg value="${restcomm-rvd.download.url}"/>
+    </exec>
+    <move file="${base.dir}/restcomm-rvd.war" todir="${configuration.directory}"/>
+  </target>
+
   <target depends="get-restcomm-media" name="extract-restcomm-media">
     <delete dir="${checkout.restcomm-media.dir}" failonerror="false"/>
     <delete dir="${release.as7.dir}/mobicents-media-server" failonerror="false"/>
@@ -179,11 +194,7 @@
     <touch file="${release.as7.dir}/standalone/deployments/restcomm-management.war.dodeploy"/>
 
     <!-- Copy RVD -->
-    <copy failonerror="true" todir="${release.as7.dir}/standalone/deployments/restcomm-rvd.war">
-      <fileset dir="${workspace.restcomm.dir}/restcomm.rvd/target/restcomm-rvd">
-        <include name="**/*"/>
-      </fileset>
-    </copy>
+    <unzip dest="${release.as7.dir}/standalone/deployments/restcomm-rvd.war" src="${configuration.directory}/restcomm-rvd.war"/>
     <touch file="${release.as7.dir}/standalone/deployments/restcomm-rvd.war.dodeploy"/>
 
     <!--Copy Rvd ES Demo-->
