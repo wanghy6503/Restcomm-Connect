@@ -37,10 +37,26 @@
   <property name="restcomm-olympus.download.url" value="https://mobicents.ci.cloudbees.com/job/Olympus/lastSuccessfulBuild/artifact/target/olympus.war"/>
   <property name="restcomm-olympus.path" value="${configuration.directory}/olympus.war"/>
 
-  <!-- RVD retrieval properties -->
-  <property name="restcomm-rvd.download.url" value="https://mobicents.ci.cloudbees.com/view/VisualDesigner/job/VisualDesigner/lastSuccessfulBuild/artifact/designer/target/restcomm-rvd.war"/>
-  <property name="restcomm-rvd.path" value="${configuration.directory}/restcomm-rvd.war"/>
+  <!-- Determine RVD retrieval URL
 
+       If 'rvd.version' command-line parameter is set, the binary is retrieved from sonatype maven repo.
+       Otherwise, the latest successfull binary from Jenkins is used.
+
+       Result assigned to: restcomm-rvd.download.url
+  -->
+  <property name="restcomm-rvd.path" value="${configuration.directory}/restcomm-rvd.war"/>
+  <condition property="restcomm-rvd.download.url" value="https://oss.sonatype.org/content/groups/public/org/restcomm/restcomm-connect-rvd/${rvd.version}/restcomm-connect-rvd-${rvd.version}.war" else="https://mobicents.ci.cloudbees.com/view/VisualDesigner/job/VisualDesigner/lastSuccessfulBuild/artifact/designer/target/restcomm-rvd.war">
+    <isset property="rvd.version"></isset>
+  </condition>
+  <echo>Will retrieve RVD from ${restcomm-rvd.download.url}</echo>
+  <!-- check actual availability of RVD at the determined URL-->
+  <fail message="RVD binary not available at ${restcomm-rvd.download.url}">
+    <condition>
+      <not>
+        <http url="${restcomm-rvd.download.url}"></http>
+      </not>
+    </condition>
+  </fail>
 
   <property name="release.build.goals" value="clean install -Dmaven.test.skip=true"/>
   <property name="release.build.test.goals" value="clean install -Dmaven.test.failure.ignore=true"/>
