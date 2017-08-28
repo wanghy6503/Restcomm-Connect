@@ -37,9 +37,20 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 @Path("/ExtensionsConfiguration.json")
 public class ExtensionsConfigurationJsonEndpoint extends ExtensionsConfigurationEndpoint {
 
+    @GET
+    public Response getExtensionsAsJson() {
+        return getExtensions(APPLICATION_JSON_TYPE);
+    }
+
     @Path("/{extensionId}")
     @GET
     public Response getConfigurationAsJson(@PathParam("extensionId") final String extension, @QueryParam("AccountSid") Sid accountSid) {
+        return getConfiguration(extension, accountSid, APPLICATION_JSON_TYPE);
+    }
+
+    @Path("/{extensionId}/{accountSid}")
+    @GET
+    public Response getAccountSpecificConfigurationAsJson(@PathParam("extensionId") final String extension, @PathParam("accountSid") Sid accountSid) {
         return getConfiguration(extension, accountSid, APPLICATION_JSON_TYPE);
     }
 
