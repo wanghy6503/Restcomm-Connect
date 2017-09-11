@@ -431,6 +431,9 @@
                     <includes>
                         <include>**/TestDialVerbPartOne.java</include>
                         <include>**/TestDialVerbPartTwo.java</include>
+                        <include>**/ClientsDialAnswerDelayTest.java</include>
+                        <include>**/TestDialVerbPartThree.java</include>
+                        <include>**/UserAgentManagerTest.java</include>
                     </includes>
                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
                     <!-- let ci script set forkcount.Dont increase over 65 
