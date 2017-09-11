@@ -59,7 +59,7 @@ public class WebArchiveUtil {
         archive.addAsWebInfResource("akka_application.conf", "classes/application.conf");
         for (String rAux: resources) {
             File rFile = WebArchiveUtil.tweakFilePorts(rAux,replacements );
-            archive.addAsWebResource(rFile);
+            archive.addAsWebResource(rFile, rAux);
         }
         return archive;
     }    
