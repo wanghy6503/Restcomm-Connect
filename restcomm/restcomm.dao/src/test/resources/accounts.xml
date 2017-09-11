@@ -40,4 +40,12 @@
       #{item}
     </foreach>
   </select>
+
+  <select id="getAccountPermissions" parameterType="map" resultType="hashmap">
+    SELECT "restcomm_permissions"."sid", "restcomm_permissions"."name", "restcomm_accounts_permissions"."value"
+    FROM "restcomm_accounts_permissions" 
+    LEFT JOIN "restcomm_permissions" 
+    ON "restcomm_accounts_permissions"."permission_sid" = "restcomm_permissions"."sid"
+    WHERE "restcomm_accounts_permissions"."account_sid"=#{account_sid};
+  </select>
 </mapper>

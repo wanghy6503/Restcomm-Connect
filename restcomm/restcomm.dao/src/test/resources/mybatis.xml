@@ -38,5 +38,6 @@
     <mapper resource="announcements.xml"/>
     <mapper resource="extensions-configuration.xml"/>
     <mapper resource="geolocation.xml"/>
+    <mapper resource="permissions.xml"/>
   </mappers>
 </configuration>

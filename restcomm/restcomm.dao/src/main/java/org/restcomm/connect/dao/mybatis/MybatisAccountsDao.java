@@ -25,7 +25,10 @@ import org.joda.time.DateTime;
 import org.restcomm.connect.dao.exceptions.AccountHierarchyDepthCrossed;
 import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 import org.restcomm.connect.dao.AccountsDao;
+import org.restcomm.connect.dao.DaoUtils;
 import org.restcomm.connect.dao.entities.Account;
+import org.restcomm.connect.dao.entities.AccountPermission;
+import org.restcomm.connect.dao.entities.Permission;
 import org.restcomm.connect.commons.dao.Sid;
 
 import java.net.URI;
@@ -267,4 +270,76 @@ public final class MybatisAccountsDao implements AccountsDao {
         map.put("uri", writeUri(account.getUri()));
         return map;
     }
+
+    private Permission toAccountPermissions(final Map<String, Object> map) {
+        final Sid sid = readSid(map.get("sid"));
+        final String name = readString(map.get("name"));
+        AccountPermission permission = new AccountPermission(sid, name);
+        permission.setValue(DaoUtils.readBoolean(map.get("value")));
+        return permission;
+    }
+
+    private Map<String, Object> toMap(final Permission account) {
+        final Map<String, Object> map = new HashMap<String, Object>();
+        map.put("sid", writeSid(account.getSid()));
+
+        return map;
+    }
+
+    @Override
+    public List<Permission> getAccountPermissions(Sid account_sid) {
+        final SqlSession session = sessions.openSession();
+
+        try {
+            final List<Map<String, Object>> results = session.selectList(namespace + "getAccountPermissions", account_sid.toString());
+            final List<Permission> permissions = new ArrayList<Permission>();
+            session.selectList(namespace + "getAccountPermissions", account_sid.toString());
+            if (results != null && !results.isEmpty()) {
+                for (final Map<String, Object> result : results) {
+                    permissions.add(toAccountPermissions(result));
+                }
+            }
+            return permissions;
+        } finally {
+            session.close();
+        }
+
+    }
+
+    @Override
+    public void addAccountPermissions(Sid account_sid1, ArrayList<Permission> permissions) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void addAccountPermission(Sid account_sid1, Permission permission) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void updateAccountPermissions(Sid account_sid1, Permission permission) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void clearAccountPermissions(Sid account_sid1, ArrayList<Permission> permissions) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void deleteAccountPermission(Sid account_sid1, Sid permission_sid1) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void deleteAccountPermissionByName(Sid account_sid1, String permission_name) {
+        // TODO Auto-generated method stub
+
+    }
+
 }

@@ -19,11 +19,13 @@
  */
 package org.restcomm.connect.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.restcomm.connect.dao.exceptions.AccountHierarchyDepthCrossed;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.dao.entities.Account;
+import org.restcomm.connect.dao.entities.Permission;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -106,4 +108,60 @@ public interface AccountsDao {
      * @throws AccountHierarchyDepthCrossed
      */
     List<String> getAccountLineage(Account account) throws AccountHierarchyDepthCrossed;
+
+    /**
+     *
+     * @param account
+     * @param array of permissions
+     * @return
+     */
+    void addAccountPermissions(Sid account_sid, ArrayList<Permission> permissions);
+
+    /**
+    *
+    * @param account
+    * @param array of permissions
+    * @return
+    */
+    void addAccountPermission(Sid account_sid1, Permission permission);
+
+    /**
+    *
+    * @param account
+    * @param array of permissions
+    * @return
+    */
+    void updateAccountPermissions(Sid account_sid1, Permission permission);
+
+    /**
+    *
+    * @param account
+    * @param array of permissions
+    * @return
+    */
+    void deleteAccountPermission(Sid account_sid1, Sid permission_sid1);
+
+    /**
+    *
+    * @param account
+    * @param array of permissions
+    * @return
+    */
+    void clearAccountPermissions(Sid account_sid1, ArrayList<Permission> permissions);
+
+    /**
+    *
+    * @param account
+    * @param array of permissions
+    * @return
+    */
+    void deleteAccountPermissionByName(Sid account_sid1, String permission_name);
+
+    /**
+    *
+    * @param Sid account sid
+    * @param array of permissions
+    * @return
+    */
+    List<Permission> getAccountPermissions(Sid account_sid);
 }
