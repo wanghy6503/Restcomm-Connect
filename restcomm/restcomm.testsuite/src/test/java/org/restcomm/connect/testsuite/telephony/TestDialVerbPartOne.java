@@ -89,7 +89,7 @@ public class TestDialVerbPartOne {
     
     static int mockPort = NetworkPortAssigner.retrieveNextPortByFile();
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(mockPort); // No-args constructor defaults to port 8080
+    public WireMockRule wireMockRule = new WireMockRule(mockPort);
     private String dialClientRcmlWithScreeningRelative = "<Response><Dial timeLimit=\"10\" timeout=\"10\"><Client url=\"http://127.0.0.1:" + mockPort + "/screening\" method=\"GET\">alice</Client></Dial></Response>";
     private String dialClientRcmlWithScreening = "<Response><Dial timeLimit=\"10\" timeout=\"10\"><Client url=\"http://127.0.0.1:" + mockPort + "/screening\" method=\"GET\">alice</Client></Dial></Response>";
 
@@ -144,8 +144,8 @@ public class TestDialVerbPartOne {
             notFoundDialNumber = "sip:+12223334457@" + restcommContact;            
         } 
         if (System.getProperty("arquillian_http_port") != null) {
-            restcommHTTPPort = Integer.valueOf(System.getProperty("arquillian_http_port"));
-        }        
+            restcommHTTPPort = Integer.valueOf(System.getProperty("arquillian_http_port"));       
+        }       
     }
 
     @Before
