@@ -467,6 +467,8 @@ since that will make ports over the maximum allowed by OS.
                     </configuration>
                     <executions>
                         <execution>
+                            <id>failsafe-integration-tests</id>
+                            <phase>integration-test</phase>                            
                             <goals>
                                 <goal>integration-test</goal>
                                 <goal>verify</goal>
