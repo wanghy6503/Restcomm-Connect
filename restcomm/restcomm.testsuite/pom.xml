@@ -423,7 +423,43 @@
                     <resultFileMinClasspathCount>2</resultFileMinClasspathCount>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.18.1</version>
+                <configuration>
+                    <includes>
+                        <include>**/TestDialVerbPartOne.java</include>
+                        <include>**/TestDialVerbPartTwo.java</include>
+                    </includes>
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                    <!-- let ci script set forkcount.Dont increase over 65 
+since that will make ports over the maximum allowed by OS.
+                    on local env set depending on available mem
+                    <forkCount>2</forkCount>
+                    -->
+                    <reuseForks>false</reuseForks>
+                    <parallel>classes</parallel>
+                    <threadCountClasses>5</threadCountClasses>
+                    <!-- start with low memory to increase forks -->
+                    <argLine>-Xms256m -Xmx2048m -XX:MaxPermSize=512m</argLine>
+                    <systemPropertyVariables>
+                        <arquillian.launch>mss-tomcat-embedded-7-forked</arquillian.launch>
+                        <arquillian_http_port>${surefire.forkNumber}509</arquillian_http_port>
+                        <arquillian_sip_port>${surefire.forkNumber}508</arquillian_sip_port>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>failsafe-integration-tests</id>
+                        <phase>integration-test</phase>                            
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>   
         </plugins>
         <pluginManagement>
             <plugins>
@@ -439,43 +475,6 @@
                         <skipTests>${skipUTs}</skipTests>
                     </configuration>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>2.18.1</version>
-                    <configuration>
-                        <includes>
-                            <include>**/TestDialVerbPartOne.java</include>
-                            <include>**/TestDialVerbPartTwo.java</include>
-                        </includes>
-                        <rerunFailingTestsCount>2</rerunFailingTestsCount>
-                        <!-- let ci script set forkcount.Dont increase over 65 
-since that will make ports over the maximum allowed by OS.
-                        on local env set depending on available mem
-                        <forkCount>2</forkCount>
-                        -->
-                        <reuseForks>false</reuseForks>
-                        <parallel>classes</parallel>
-                        <threadCountClasses>5</threadCountClasses>
-                        <!-- start with low memory to increase forks -->
-                        <argLine>-Xms256m -Xmx2048m -XX:MaxPermSize=512m</argLine>
-                        <systemPropertyVariables>
-                            <arquillian.launch>mss-tomcat-embedded-7-forked</arquillian.launch>
-                            <arquillian_http_port>${surefire.forkNumber}509</arquillian_http_port>
-                            <arquillian_sip_port>${surefire.forkNumber}508</arquillian_sip_port>
-                        </systemPropertyVariables>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>failsafe-integration-tests</id>
-                            <phase>integration-test</phase>                            
-                            <goals>
-                                <goal>integration-test</goal>
-                                <goal>verify</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>                 
             </plugins>
         </pluginManagement>
     </build>
