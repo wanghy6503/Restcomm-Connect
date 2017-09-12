@@ -115,7 +115,7 @@ public interface AccountsDao {
      * @param array of permissions
      * @return
      */
-    void addAccountPermissions(Sid account_sid, ArrayList<Permission> permissions);
+    void addAccountPermissions(Sid account_sid, List<Permission> permissions);
 
     /**
     *

@@ -82,15 +82,41 @@ public class AccountsPermissionsDaoTest extends DaoTest{
 
     @Test
     public void testAddAccountPermissions(){
-        Sid account_sid1 = new Sid("AC00000000000000000000000000000001");
-        Sid permission_sid1 = new Sid("PE00000000000000000000000000000001");
-        String permission_name = "RestComm:*:ASR";
+        Sid account_sid1 = new Sid("AC00000000000000000000000000000002");
+        Sid permission_sid1 = new Sid("PE00000000000000000000000000000096");
+        Sid permission_sid2 = new Sid("PE00000000000000000000000000000097");
+        Sid permission_sid3 = new Sid("PE00000000000000000000000000000098");
+        String permission_name1 = "RestComm:*:USSD";
+        String permission_name2 = "RestComm:*:ASR";
+        String permission_name3 = "RestComm:*:STUFF";
         //Array, hash
-        ArrayList<Permission> permissions = new ArrayList<Permission>();
-        Permission permission = new Permission(permission_sid1, permission_name);
-        accountsDao.addAccountPermissions(account_sid1, permissions);
+        List<Permission> permissions = new ArrayList<Permission>();
+        List<Permission> permissions2 = new ArrayList<Permission>();
+        AccountPermission permission1 = new AccountPermission(permission_sid1, permission_name1, true);
+        AccountPermission permission2 = new AccountPermission(permission_sid2, permission_name2, false);
+        AccountPermission permission3 = new AccountPermission(permission_sid3, permission_name3, true);
+        permissionsDao.addPermission(permission1);
+        permissionsDao.addPermission(permission2);
+        permissionsDao.addPermission(permission3);
 
-        accountsDao.addAccountPermission(account_sid1, permission);
+        permissions.add(permission1);
+        permissions.add(permission2);
+        permissions.add(permission3);
+        accountsDao.addAccountPermissions(account_sid1, permissions);
+        permissions2 = accountsDao.getAccountPermissions(account_sid1);
+        assertTrue(permissions2.size()==3);
+        assertTrue(((AccountPermission)permissions2.get(0)).getSid().equals(permission_sid1));
+        assertTrue(((AccountPermission)permissions2.get(0)).getName().equals(permission_name1));
+        assertTrue(((AccountPermission)permissions2.get(0)).getValue());
+
+        assertTrue(((AccountPermission)permissions2.get(1)).getSid().equals(permission_sid2));
+        assertTrue(((AccountPermission)permissions2.get(1)).getName().equals(permission_name2));
+        assertFalse(((AccountPermission)permissions2.get(1)).getValue());
+
+        assertTrue(((AccountPermission)permissions2.get(2)).getSid().equals(permission_sid3));
+        assertTrue(((AccountPermission)permissions2.get(2)).getName().equals(permission_name3));
+        assertTrue(((AccountPermission)permissions2.get(2)).getValue());
+
     }
 
     @Test
@@ -114,10 +140,10 @@ public class AccountsPermissionsDaoTest extends DaoTest{
         ArrayList<Permission> permissions = new ArrayList<Permission>();
         Permission permission = new Permission(permission_sid1, permission_name);
 
-        accountsDao.clearAccountPermissions(account_sid1, permissions);
+        //accountsDao.clearAccountPermissions(account_sid1, permissions);
 
         accountsDao.deleteAccountPermission(account_sid1, permission_sid1);
-        accountsDao.deleteAccountPermissionByName(account_sid1, permission_name);
+        //accountsDao.deleteAccountPermissionByName(account_sid1, permission_name);
     }
 
 }

@@ -5,9 +5,12 @@ import org.restcomm.connect.commons.dao.Sid;
 public class AccountPermission extends Permission {
     private boolean value;
     public AccountPermission(Sid sid, String name) {
-        super(sid, name);
+        this(sid, name, false);
     }
-
+    public AccountPermission(Sid sid, String name, Boolean value) {
+        super(sid, name);
+        this.value = value;
+    }
     /**
      * @return the value
      */

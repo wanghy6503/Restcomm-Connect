@@ -274,15 +274,17 @@ public final class MybatisAccountsDao implements AccountsDao {
     private Permission toAccountPermissions(final Map<String, Object> map) {
         final Sid sid = readSid(map.get("sid"));
         final String name = readString(map.get("name"));
-        AccountPermission permission = new AccountPermission(sid, name);
-        permission.setValue(DaoUtils.readBoolean(map.get("value")));
+        final Boolean value = DaoUtils.readBoolean(map.get("value"));
+        AccountPermission permission = new AccountPermission(sid, name, value);
+
         return permission;
     }
 
-    private Map<String, Object> toMap(final Permission account) {
+    private Map<String, Object> toMap(Sid accountSid, final Permission permission) {
         final Map<String, Object> map = new HashMap<String, Object>();
-        map.put("sid", writeSid(account.getSid()));
-
+        map.put("permission_sid", writeSid(permission.getSid()));
+        map.put("account_sid", writeSid(accountSid));
+        map.put("value", ((AccountPermission)permission).getValue());//autobox?
         return map;
     }
 
@@ -293,7 +295,7 @@ public final class MybatisAccountsDao implements AccountsDao {
         try {
             final List<Map<String, Object>> results = session.selectList(namespace + "getAccountPermissions", account_sid.toString());
             final List<Permission> permissions = new ArrayList<Permission>();
-            session.selectList(namespace + "getAccountPermissions", account_sid.toString());
+
             if (results != null && !results.isEmpty()) {
                 for (final Map<String, Object> result : results) {
                     permissions.add(toAccountPermissions(result));
@@ -307,21 +309,35 @@ public final class MybatisAccountsDao implements AccountsDao {
     }
 
     @Override
-    public void addAccountPermissions(Sid account_sid1, ArrayList<Permission> permissions) {
+    public void addAccountPermissions(Sid account_sid1, List<Permission> permissions) {
         // TODO Auto-generated method stub
-
+        for(Permission p : permissions){
+            addAccountPermission(account_sid1, p);
+        }
     }
 
     @Override
     public void addAccountPermission(Sid account_sid1, Permission permission) {
         // TODO Auto-generated method stub
-
+        final SqlSession session = sessions.openSession();
+        try {
+            session.insert(namespace + "addAccountPermission", toMap(account_sid1, permission));
+            session.commit();
+        } finally {
+            session.close();
+        }
     }
 
     @Override
     public void updateAccountPermissions(Sid account_sid1, Permission permission) {
         // TODO Auto-generated method stub
-
+        final SqlSession session = sessions.openSession();
+        try {
+            session.insert(namespace + "updateAccountPermission", toMap(account_sid1, permission));
+            session.commit();
+        } finally {
+            session.close();
+        }
     }
 
     @Override
@@ -333,7 +349,13 @@ public final class MybatisAccountsDao implements AccountsDao {
     @Override
     public void deleteAccountPermission(Sid account_sid1, Sid permission_sid1) {
         // TODO Auto-generated method stub
-
+        final SqlSession session = sessions.openSession();
+        try {
+            session.insert(namespace + "deleteAccountPermission", permission_sid1);
+            session.commit();
+        } finally {
+            session.close();
+        }
     }
 
     @Override

@@ -48,4 +48,19 @@
     ON "restcomm_accounts_permissions"."permission_sid" = "restcomm_permissions"."sid"
     WHERE "restcomm_accounts_permissions"."account_sid"=#{account_sid};
   </select>
+
+  <select id="addAccountPermission" parameterType="map">
+    INSERT INTO "restcomm_accounts_permissions" ("account_sid", "permission_sid", "value")
+    VALUES(#{account_sid}, #{permission_sid}, #{value})
+  </select>
+
+  <delete id="deleteAccountPermission" parameterType="map">
+    DELETE FROM "restcomm_accounts_permissions"
+    WHERE "account_sid"=#{acocunt_sid} AND "permission_sid"=#{permission_sid};
+  </delete>
+
+  <update id="updateAccountPermission" parameterType="map">
+    UPDATE "restcomm_accounts_permissions" SET "value"=#{value}
+    WHERE "account_sid"=#{acocunt_sid} AND "permission_sid"=#{permission_sid};
+  </update>
 </mapper>
