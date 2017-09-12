@@ -732,7 +732,7 @@ public class TestDialVerbPartOne {
         int initialCdrSize = 0;
 
         //Check CDR
-        JsonObject cdrs = RestcommCallsTool.getInstance().getCalls("http://127.0.0.1:8080/restcomm", adminAccountSid, adminAuthToken);
+        JsonObject cdrs = RestcommCallsTool.getInstance().getCalls("http://127.0.0.1:" +restcommHTTPPort + "/restcomm", adminAccountSid, adminAuthToken);
         if (cdrs != null) {
             initialCdrSize = cdrs.get("calls").getAsJsonArray().size();
         }
@@ -785,7 +785,7 @@ public class TestDialVerbPartOne {
         Thread.sleep(3000);
 
         //Check CDR
-        cdrs = RestcommCallsTool.getInstance().getCalls("http://127.0.0.1:8080/restcomm", adminAccountSid, adminAuthToken);
+        cdrs = RestcommCallsTool.getInstance().getCalls("http://127.0.0.1:" + restcommHTTPPort + "/restcomm", adminAccountSid, adminAuthToken);
         assertNotNull(cdrs);
         JsonArray cdrsArray = cdrs.get("calls").getAsJsonArray();
         System.out.println("cdrsArray.size(): " + cdrsArray.size());
