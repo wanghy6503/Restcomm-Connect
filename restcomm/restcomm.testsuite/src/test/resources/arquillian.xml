@@ -16,7 +16,7 @@
 	</container>
 	<container qualifier="mss-tomcat-embedded-7-forked" default="false">
 		<configuration>
-			<property name="tomcatHome">target/mss-tomcat-embedded-7</property>
+			<property name="tomcatHome">target/${arquillian_sip_port}-mss-tomcat-embedded-7</property>
 			<property name="workDir">work</property>
 			<property name="bindHttpPort">${arquillian_http_port}</property>
 			<property name="unpackArchive">true</property>
