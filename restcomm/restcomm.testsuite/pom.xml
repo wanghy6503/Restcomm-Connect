@@ -432,12 +432,11 @@
                         <include>**/TestDialVerbPartOne.java</include>
                         <include>**/TestDialVerbPartTwo.java</include>
                         <include>**/TestDialVerbPartThree.java</include>                      
-
-                        <!--<include>**/ClientsDialAnswerDelayTest.java</include>-->
+                        <<include>**/ClientsDialAnswerDelayTest.java</include>
                         <include>**/UserAgentManagerTest.java</include>
                         
                     </includes>
-                    <rerunFailingTestsCount>0</rerunFailingTestsCount>
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
                     <!-- let ci script set forkcount.Dont increase over 65 
 since that will make ports over the maximum allowed by OS.
                     on local env set depending on available mem
