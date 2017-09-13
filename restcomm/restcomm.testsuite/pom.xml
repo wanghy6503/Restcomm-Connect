@@ -432,7 +432,7 @@
                         <include>**/TestDialVerbPartOne.java</include>
                         <include>**/TestDialVerbPartTwo.java</include>
                         <include>**/TestDialVerbPartThree.java</include>                      
-                        <<include>**/ClientsDialAnswerDelayTest.java</include>
+                        <include>**/ClientsDialAnswerDelayTest.java</include>
                         <include>**/UserAgentManagerTest.java</include>
                         
                     </includes>
