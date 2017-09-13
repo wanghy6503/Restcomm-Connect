@@ -167,7 +167,9 @@ public class ClientsDialAnswerDelayTest {
     @ArquillianResource
     URL deploymentUrl;
 
-    static int mockPort = NetworkPortAssigner.retrieveNextPortByFile();
+    private static int mediaPort = NetworkPortAssigner.retrieveNextPortByFile();
+    
+    private static int mockPort = NetworkPortAssigner.retrieveNextPortByFile();
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(mockPort);
     
@@ -1015,6 +1017,8 @@ public class ClientsDialAnswerDelayTest {
     public static WebArchive createWebArchiveNoGw() {
 
         Map<String,String> replacements = new HashMap();
+        //replace mediaport 2727 
+        replacements.put("2727", String.valueOf(mediaPort)); 
         replacements.put("8080", String.valueOf(restcommHTTPPort));
         replacements.put("8090", String.valueOf(mockPort));
         replacements.put("5080", String.valueOf(restcommPort));
