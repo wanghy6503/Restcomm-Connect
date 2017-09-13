@@ -6,7 +6,7 @@
             <!--keep logs under maven target dir for git ginore and cleaning -->
             <!--use arquillian system property to make file names unique across forks -->
 		<param name="file" value="target/logs/sip-server${arquillian_sip_port}.log" />
-		<param name="MaxFileSize" value="2000KB" />
+		<param name="MaxFileSize" value="20000KB" />
 		<!-- Keep one backup file -->
 		<param name="MaxBackupIndex" value="20" />
 		<param name="append" value="false"/>
