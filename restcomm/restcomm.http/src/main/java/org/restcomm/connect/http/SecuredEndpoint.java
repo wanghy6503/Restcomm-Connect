@@ -113,6 +113,7 @@ public abstract class SecuredEndpoint extends AbstractEndpoint {
             }
         }
         permissionUtil = PermissionsUtil.getInstance(this.context);
+        permissionUtil.setUserIdentityContext(userIdentityContext);
     }
 
     /**

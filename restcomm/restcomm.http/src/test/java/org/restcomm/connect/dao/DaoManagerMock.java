@@ -165,4 +165,10 @@ public class DaoManagerMock implements DaoManager {
     public void shutdown() throws InterruptedException {
 
     }
+
+    @Override
+    public PermissionsDao getPermissionsDao() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

@@ -350,8 +350,11 @@ public final class MybatisAccountsDao implements AccountsDao {
     public void deleteAccountPermission(Sid account_sid1, Sid permission_sid1) {
         // TODO Auto-generated method stub
         final SqlSession session = sessions.openSession();
+        final Map<String, String> map = new HashMap<String, String>();
+        map.put("account_sid", account_sid1.toString());
+        map.put("permission_sid", permission_sid1.toString());
         try {
-            session.insert(namespace + "deleteAccountPermission", permission_sid1);
+            session.insert(namespace + "deleteAccountPermission", map);
             session.commit();
         } finally {
             session.close();

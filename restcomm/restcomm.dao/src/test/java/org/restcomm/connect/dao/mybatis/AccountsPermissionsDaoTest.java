@@ -61,7 +61,7 @@ public class AccountsPermissionsDaoTest extends DaoTest{
         Sid account_sid1 = new Sid("ACae6e420f425248d6a26948c17a9e2acf");
         Sid account_sid2 = new Sid("ACae6e420f425248d6a26948c17a9e2acg");
         Sid permission_sid1 = new Sid("PE00000000000000000000000000000001");
-        Sid permission_sid2 = new Sid("PE00000000000000000000000000000001");
+        Sid permission_sid2 = new Sid("PE00000000000000000000000000000002");
         String permission_name1 = "RestComm:*:USSD";
         String permission_name2 = "RestComm:*:ASR";
 
@@ -125,25 +125,80 @@ public class AccountsPermissionsDaoTest extends DaoTest{
         Sid permission_sid1 = new Sid("PE00000000000000000000000000000001");
         String permission_name = "RestComm:*:ASR";
         //Array, hash
-        ArrayList<Permission> permissions = new ArrayList<Permission>();
-        Permission permission = new Permission(permission_sid1, permission_name);
+        List<Permission> permissions1 = new ArrayList<Permission>();
+        List<Permission> permissions2 = new ArrayList<Permission>();
 
-        accountsDao.updateAccountPermissions(account_sid1, permission);
+
+        boolean value1 = true;
+        boolean value2 = false;
+        //change value 
+        permissions1 = accountsDao.getAccountPermissions(account_sid1);
+        AccountPermission permission1 = (AccountPermission)permissions1.get(0);
+        AccountPermission permission2 = (AccountPermission)permissions1.get(1);
+        assertTrue(permission1.getValue());
+        assertFalse(permission2.getValue());
+        permission1.setValue(!permission1.getValue());
+        permission2.setValue(!permission2.getValue());
+        assertFalse(permission1.getValue());
+        assertTrue(permission2.getValue());
+        accountsDao.updateAccountPermissions(account_sid1, permission1);
+        permissions2 = accountsDao.getAccountPermissions(account_sid1);
+        AccountPermission permission3 = (AccountPermission)permissions2.get(0);
+        AccountPermission permission4 = (AccountPermission)permissions2.get(1);
+        assertFalse(permission3.getValue());
+        assertFalse(permission4.getValue());
     }
 
     @Test
     public void testDeleteAccountPermissions(){
         Sid account_sid1 = new Sid("AC00000000000000000000000000000001");
-        Sid permission_sid1 = new Sid("PE00000000000000000000000000000001");
+        Sid permission_sid1 = new Sid("PE00000000000000000000000000000096");
+        Sid permission_sid2 = new Sid("PE00000000000000000000000000000097");
+        Sid permission_sid3 = new Sid("PE00000000000000000000000000000098");
         String permission_name = "RestComm:*:ASR";
         //Array, hash
-        ArrayList<Permission> permissions = new ArrayList<Permission>();
-        Permission permission = new Permission(permission_sid1, permission_name);
+        List<Permission> permissions1 = new ArrayList<Permission>();
+        List<Permission> permissions2 = new ArrayList<Permission>();
+        Permission permission1 = null;
 
-        //accountsDao.clearAccountPermissions(account_sid1, permissions);
+        permissions1 = accountsDao.getAccountPermissions(account_sid1);
+        assertTrue(permissions1.size()==3);
 
         accountsDao.deleteAccountPermission(account_sid1, permission_sid1);
+        accountsDao.deleteAccountPermission(account_sid1, permission_sid3);
         //accountsDao.deleteAccountPermissionByName(account_sid1, permission_name);
+        permissions2 = accountsDao.getAccountPermissions(account_sid1);
+        permission1 = permissions2.get(0);
+        assertTrue(permissions2.size()==1);
+        assertTrue(permission1.getSid().equals(permission_sid2));
     }
+    @Test
+    public void testDeleteAccountPermissionsByName(){
+        Sid account_sid1 = new Sid("AC00000000000000000000000000000001");
+        Sid permission_sid1 = new Sid("PE00000000000000000000000000000096");
+        Sid permission_sid2 = new Sid("PE00000000000000000000000000000097");
+        Sid permission_sid3 = new Sid("PE00000000000000000000000000000098");
+        String permission_name1 = "RestComm:*:ASR";
+        String permission_name2 = "RestComm:*:USSD";
+        String permission_name3 = "RestComm:*:USSD";
+        //Array, hash
+        List<Permission> permissions1 = new ArrayList<Permission>();
+        List<Permission> permissions2 = new ArrayList<Permission>();
+        Permission permission1 = null;
 
+        permissions1 = accountsDao.getAccountPermissions(account_sid1);
+        assertTrue(permissions1.size()==3);
+
+        accountsDao.deleteAccountPermission(account_sid1, permission_sid1);
+        accountsDao.deleteAccountPermission(account_sid1, permission_sid3);
+        //accountsDao.deleteAccountPermissionByName(account_sid1, permission_name);
+        permissions2 = accountsDao.getAccountPermissions(account_sid1);
+        permission1 = permissions2.get(0);
+        assertTrue(permissions1.size()==1);
+        assertTrue(permission1.getSid().equals(permission_sid2));
+    }
+    @Test
+    public void testClearAccountPermissions(){
+        
+    }
 }

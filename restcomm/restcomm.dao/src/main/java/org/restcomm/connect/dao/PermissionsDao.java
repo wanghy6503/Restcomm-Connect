@@ -19,10 +19,13 @@
  */
 package org.restcomm.connect.dao;
 
+import java.util.List;
+
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.dao.entities.Permission;
 
 public interface PermissionsDao {
+    List<Permission> getPermissions();
     Permission getPermission(Sid sid);
     Permission getPermissionByName(String name);
     void addPermission(Permission permission);

@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleRole;
 import org.apache.shiro.authz.permission.WildcardPermissionResolver;
+import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.exceptions.InsufficientPermission;
 import org.restcomm.connect.identity.AuthOutcome;
 import org.restcomm.connect.identity.IdentityContext;
@@ -47,7 +48,13 @@ public class PermissionsUtil {
         if ( checkPermission(permission, userIdentityContext.getEffectiveAccountRoles()) != AuthOutcome.OK )
             throw new InsufficientPermission();
     }
-
+    public AuthOutcome checkPermission(String neededPermissionString, Sid accountSid) {
+        //get account
+        //get account role
+        //get account role permissions
+        //get account permissions
+        return null;
+    }
     public AuthOutcome checkPermission(String neededPermissionString, Set<String> roleNames) {
         // if this is an administrator ask no more questions
         if ( roleNames.contains(getAdministratorRole()))
@@ -83,6 +90,10 @@ public class PermissionsUtil {
             }
         }
         return AuthOutcome.FAILED;
+    }
+
+    public void getEffectivePermission(){
+
     }
 
     /**

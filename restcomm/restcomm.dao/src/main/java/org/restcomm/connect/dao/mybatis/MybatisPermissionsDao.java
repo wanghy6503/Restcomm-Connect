@@ -20,6 +20,7 @@
  */
 package org.restcomm.connect.dao.mybatis;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.map.HashedMap;
@@ -114,5 +115,11 @@ public class MybatisPermissionsDao implements PermissionsDao {
         map.put("sid", permission.getSid().toString());
         map.put("name", permission.getName());
         return map;
+    }
+
+    @Override
+    public List<Permission> getPermissions() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
