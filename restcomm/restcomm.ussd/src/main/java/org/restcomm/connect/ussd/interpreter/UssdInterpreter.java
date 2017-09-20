@@ -317,6 +317,7 @@ public class UssdInterpreter extends RestcommUntypedActor {
     ActorRef downloader() {
         final Props props = new Props(new UntypedActorFactory() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public UntypedActor create() throws Exception {
                 return new Downloader();

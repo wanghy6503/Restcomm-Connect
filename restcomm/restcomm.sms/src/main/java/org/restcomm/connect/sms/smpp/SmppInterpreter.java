@@ -210,9 +210,10 @@ public class SmppInterpreter extends RestcommUntypedActor {
         });
     }
 
-    private ActorRef downloader() {
+    ActorRef downloader() {
         final Props props = new Props(new UntypedActorFactory() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public UntypedActor create() throws Exception {
                 return new Downloader();

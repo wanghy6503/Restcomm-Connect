@@ -231,7 +231,7 @@ public final class SmsInterpreter extends RestcommUntypedActor {
         });
     }
 
-    private ActorRef downloader() {
+    ActorRef downloader() {
         final Props props = new Props(new UntypedActorFactory() {
             private static final long serialVersionUID = 1L;
 
