@@ -31,13 +31,15 @@ public interface MainConfigurationSet {
     SslMode getSslMode();
 
     int getResponseTimeout();
-    
+
+    Integer getDefaultHttpConnectionRequestTimeout();
+
     Integer getDefaultHttpMaxConns();
-    
+
     Integer getDefaultHttpMaxConnsPerRoute();
-    
+
     Integer getDefaultHttpTTL();
-    
+
     Map<InetSocketAddress,Integer> getDefaultHttpRoutes();
 
     boolean isUseHostnameToResolveRelativeUrls();

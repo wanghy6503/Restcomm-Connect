@@ -60,18 +60,17 @@ import java.util.List;
 public final class Downloader extends RestcommUntypedActor {
 
     public static final int LOGGED_RESPONSE_MAX_SIZE = 100;
-    
-    public static String ACTOR_NAME="restcomm.downloader";
-    
-    private CloseableHttpClient client = null;    
+
+    private static CloseableHttpClient client = null;
 
     // Logger.
     private final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
 
     public Downloader () {
         super();
-        client = (CloseableHttpClient) CustomHttpClientBuilder.build(RestcommConfiguration.getInstance().getMain());       
+        client = (CloseableHttpClient) CustomHttpClientBuilder.buildDefaultClient(RestcommConfiguration.getInstance().getMain());
     }
+    
 
     public HttpResponseDescriptor fetch (final HttpRequestDescriptor descriptor) throws IllegalArgumentException, IOException,
             URISyntaxException, XMLStreamException {
@@ -129,7 +128,9 @@ public final class Downloader extends RestcommUntypedActor {
             logger.warning(String.format("Problem while trying to download RCML. URL: %s, Status: %s, Response: %s ", request.getRequestLine(), statusInfo, responseInfo));
             throw e; // re-throw
         } finally {
-            response.close();
+            if (response != null) {
+                response.close();
+            }
         }
         return responseDescriptor;
     }
@@ -246,9 +247,6 @@ public final class Downloader extends RestcommUntypedActor {
     public void postStop () {
         if (logger.isDebugEnabled()) {
             logger.debug("Downloader at post stop");
-        }
-        if (client != null) {
-            HttpClientUtils.closeQuietly(client);
         }
         super.postStop();
     }

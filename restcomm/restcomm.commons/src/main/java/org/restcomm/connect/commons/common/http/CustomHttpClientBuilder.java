@@ -19,11 +19,7 @@
  */
 package org.restcomm.connect.commons.common.http;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -37,6 +33,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpHost;
+import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.routing.HttpRoute;
@@ -45,6 +43,7 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
@@ -59,17 +58,33 @@ public class CustomHttpClientBuilder {
     private CustomHttpClientBuilder() {
     }
 
-    public static HttpClient build(MainConfigurationSet config) {
+    private static CloseableHttpClient defaultClient = null;
+
+    public static synchronized void stopDefaultClient() {
+        if (defaultClient != null) {
+            HttpClientUtils.closeQuietly(defaultClient);
+            defaultClient = null;
+        }
+    }
+
+    public static synchronized CloseableHttpClient buildDefaultClient(MainConfigurationSet config) {
+        if (defaultClient == null) {
+            defaultClient = build(config);
+        }
+        return defaultClient;
+    }
+
+    public static CloseableHttpClient build(MainConfigurationSet config) {
         int timeoutConnection = config.getResponseTimeout();
         return build(config, timeoutConnection);
     }
 
-    public static HttpClient build(MainConfigurationSet config, int timeout) {
+    public static CloseableHttpClient build(MainConfigurationSet config, int timeout) {
         HttpClientBuilder builder = HttpClients.custom();
-        
+
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
+                .setConnectionRequestTimeout(config.getDefaultHttpConnectionRequestTimeout())
                 .setSocketTimeout(timeout)
                 .setCookieSpec(CookieSpecs.STANDARD).build();
         builder.setDefaultRequestConfig(requestConfig);
@@ -82,13 +97,12 @@ public class CustomHttpClientBuilder {
             sslsf = buildAllowallFactory();
         }
         builder.setSSLSocketFactory(sslsf);
-        
 
         builder.setMaxConnPerRoute(config.getDefaultHttpMaxConnsPerRoute());
         builder.setMaxConnTotal(config.getDefaultHttpMaxConns());
-        builder.setConnectionTimeToLive(config.getDefaultHttpTTL(), TimeUnit.MILLISECONDS);        
-        if (config.getDefaultHttpRoutes() != null && 
-                config.getDefaultHttpRoutes().size() > 0) {
+        builder.setConnectionTimeToLive(config.getDefaultHttpTTL(), TimeUnit.MILLISECONDS);
+        if (config.getDefaultHttpRoutes() != null
+                && config.getDefaultHttpRoutes().size() > 0) {
             if (sslsf == null) {
                 //strict mode with no system https properties
                 //taken from apache buider code
@@ -113,11 +127,11 @@ public class CustomHttpClientBuilder {
             poolingmgr.setMaxTotal(config.getDefaultHttpMaxConns());
             poolingmgr.setDefaultMaxPerRoute(config.getDefaultHttpMaxConnsPerRoute());
             for (InetSocketAddress addr : config.getDefaultHttpRoutes().keySet()) {
-                    HttpRoute r = new HttpRoute(new HttpHost(addr.getHostName(), addr.getPort()));
-                    poolingmgr.setMaxPerRoute(r, config.getDefaultHttpRoutes().get(addr));
+                HttpRoute r = new HttpRoute(new HttpHost(addr.getHostName(), addr.getPort()));
+                poolingmgr.setMaxPerRoute(r, config.getDefaultHttpRoutes().get(addr));
             }
             builder.setConnectionManager(poolingmgr);
-        }        
+        }
         return builder.build();
     }
 

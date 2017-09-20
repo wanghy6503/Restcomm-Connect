@@ -23,21 +23,27 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.JavaTestKit;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 
@@ -47,8 +53,16 @@ import scala.concurrent.duration.FiniteDuration;
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
 public final class DownloaderTest {
+
     private ActorSystem system;
     private ActorRef downloader;
+    
+    private static int MOCK_PORT = 8099;
+    //use localhost instead of 127.0.0.1 to match the route rule
+    private static String PATH = "http://localhost:" + MOCK_PORT + "/";
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().bindAddress("127.0.0.1").port(MOCK_PORT));    
 
     public DownloaderTest() {
         super();
@@ -58,10 +72,11 @@ public final class DownloaderTest {
     public void before() throws Exception {
         URL url = this.getClass().getResource("/restcomm.xml");
         Configuration xml = new XMLConfiguration(url);
-        RestcommConfiguration.createOnce(xml);        
+        RestcommConfiguration.createOnce(xml);
         system = ActorSystem.create();
-        downloader = system.actorOf(new Props(Downloader.class), Downloader.ACTOR_NAME);
-    }  
+        downloader = system.actorOf(new Props(Downloader.class));
+        wireMockRule.resetRequests();
+    }
 
     @After
     public void after() throws Exception {
@@ -70,10 +85,16 @@ public final class DownloaderTest {
 
     @Test
     public void testGet() throws URISyntaxException, IOException {
+        stubFor(get(urlMatching("/testGet")).willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("expectedBody")));        
         new JavaTestKit(system) {
             {
+                
+                
                 final ActorRef observer = getRef();
-                final URI uri = URI.create("http://www.restcomm.org");
+                final URI uri = URI.create(PATH + "testGet");
                 final String method = "GET";
                 final HttpRequestDescriptor request = new HttpRequestDescriptor(uri, method);
                 downloader.tell(request, observer);
@@ -82,18 +103,21 @@ public final class DownloaderTest {
                 assertTrue(response.succeeded());
                 final HttpResponseDescriptor descriptor = response.get();
                 System.out.println("Result: " + descriptor.getContentAsString());
-                assertTrue(descriptor.getContentAsString().contains("<title>RestComm - Home</title>"));
+                assertTrue(descriptor.getContentAsString().contains("expectedBody"));
             }
         };
     }
 
     @Test
-    @Ignore
     public void testPost() throws URISyntaxException, IOException {
+        stubFor(post(urlMatching("/testPost")).willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("expectedBody")));
         new JavaTestKit(system) {
             {
                 final ActorRef observer = getRef();
-                final URI uri = URI.create("http://www.restcomm.org");
+                final URI uri = URI.create(PATH + "testPost");
                 final String method = "POST";
                 final HttpRequestDescriptor request = new HttpRequestDescriptor(uri, method);
                 downloader.tell(request, observer);
@@ -101,17 +125,21 @@ public final class DownloaderTest {
                 final DownloaderResponse response = expectMsgClass(timeout, DownloaderResponse.class);
                 assertTrue(response.succeeded());
                 final HttpResponseDescriptor descriptor = response.get();
-                assertTrue(descriptor.getContentAsString().contains("<title>RestComm - Home</title>"));
+                assertTrue(descriptor.getContentAsString().contains("expectedBody"));
             }
         };
     }
 
     @Test
     public void testNotFound() throws URISyntaxException, IOException {
+        stubFor(get(urlMatching("/testNotFound")).willReturn(aResponse()
+                .withStatus(404)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{}")));        
         new JavaTestKit(system) {
             {
                 final ActorRef observer = getRef();
-                final URI uri = URI.create("https://github.com/restcomm/not-found.html");
+                final URI uri = URI.create(PATH + "testNotFound");
                 final String method = "GET";
                 final HttpRequestDescriptor request = new HttpRequestDescriptor(uri, method);
                 downloader.tell(request, observer);
@@ -119,7 +147,45 @@ public final class DownloaderTest {
                 final DownloaderResponse response = expectMsgClass(timeout, DownloaderResponse.class);
                 assertTrue(response.succeeded());
                 final HttpResponseDescriptor descriptor = response.get();
-                assertEquals(404, descriptor.getStatusCode() );
+                assertEquals(404, descriptor.getStatusCode());
+            }
+        };
+    }
+
+
+    /**
+     * configuration comes from restcomm.xml file
+     *
+     * @throws Exception
+     */
+    @Test()
+    public void testDownloaderWithRouteconfiguration() throws Exception {
+        stubFor(get(urlMatching("/testDownloaderWithRouteconfiguration")).willReturn(aResponse()
+                .withFixedDelay(5000 * 2)//delay will cause read timeout to happen
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody("{}")));
+        new JavaTestKit(system) {
+            {
+                int connsPerRoute = 5;
+                final URI uri = URI.create(PATH + "testDownloaderWithRouteconfiguration");
+                final String method = "GET";
+                final HttpRequestDescriptor request = new HttpRequestDescriptor(uri, method);
+                final ActorRef observer = getRef();
+                
+                for (int i =0; i < connsPerRoute; i ++)
+                {
+                    downloader = system.actorOf(new Props(Downloader.class));
+                    downloader.tell(request, observer);
+                }           
+                Thread.sleep(1000);
+                downloader = system.actorOf(new Props(Downloader.class));
+                downloader.tell(request, observer);
+                final FiniteDuration timeout = FiniteDuration.create(30, TimeUnit.SECONDS);
+                final DownloaderResponse response = expectMsgClass(timeout, DownloaderResponse.class);
+                assertFalse(response.succeeded());
+                //JavaTestKit dont allow to throw exception and use "expected"
+                assertEquals(ConnectionPoolTimeoutException.class, response.cause().getClass());
             }
         };
     }

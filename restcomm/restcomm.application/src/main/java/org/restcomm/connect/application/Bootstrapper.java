@@ -50,7 +50,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.actor.UntypedActorFactory;
-import org.restcomm.connect.http.client.Downloader;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.restcomm.connect.commons.common.http.CustomHttpClientBuilder;
 import scala.concurrent.ExecutionContext;
 
 /**
@@ -73,6 +74,7 @@ public final class Bootstrapper extends SipServlet implements SipServletListener
 
     @Override
     public void destroy() {
+        CustomHttpClientBuilder.stopDefaultClient();
         system.shutdown();
         system.awaitTermination();
     }
@@ -242,19 +244,6 @@ public final class Bootstrapper extends SipServlet implements SipServletListener
         return system.actorOf(props);
 
     }
-    
-    private ActorRef createDownloader() {
-        final Props props = new Props(new UntypedActorFactory() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public UntypedActor create() throws Exception {
-                return new Downloader();
-            }
-        });
-        return system.actorOf(props, Downloader.ACTOR_NAME);
-
-    }    
 
     private String uri(final ServletContext context) {
         return context.getContextPath();
@@ -371,17 +360,9 @@ public final class Bootstrapper extends SipServlet implements SipServletListener
                 logger.error("Monitoring Service is null");
             }
             
-            //Initialize Downloader
-            ActorRef downloaderRef = createDownloader();
-            if (downloaderRef != null) {
-                context.setAttribute(Downloader.class.getName(), downloaderRef);
-                if(logger.isInfoEnabled()) {
-                    logger.info("Downloader created and stored in the context");
-                }
-            } else {
-                logger.error("Downloader is null");
-            }            
-
+            CloseableHttpClient buildDefaultClient = CustomHttpClientBuilder.buildDefaultClient(RestcommConfiguration.getInstance().getMain());
+            context.setAttribute(CustomHttpClientBuilder.class.getName(), buildDefaultClient);
+            
             //Initialize Extensions
             Configuration extensionConfiguration = null;
             try {
