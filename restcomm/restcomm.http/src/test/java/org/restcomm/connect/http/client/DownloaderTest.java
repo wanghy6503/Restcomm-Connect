@@ -25,20 +25,22 @@ import akka.actor.Props;
 import akka.testkit.JavaTestKit;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.XMLConfiguration;
 
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 
-import org.restcomm.connect.http.client.Downloader;
-import org.restcomm.connect.http.client.DownloaderResponse;
-import org.restcomm.connect.http.client.HttpRequestDescriptor;
-import org.restcomm.connect.http.client.HttpResponseDescriptor;
 import scala.concurrent.duration.FiniteDuration;
 
 /**
@@ -54,9 +56,12 @@ public final class DownloaderTest {
 
     @Before
     public void before() throws Exception {
+        URL url = this.getClass().getResource("/restcomm.xml");
+        Configuration xml = new XMLConfiguration(url);
+        RestcommConfiguration.createOnce(xml);        
         system = ActorSystem.create();
-        downloader = system.actorOf(new Props(Downloader.class));
-    }
+        downloader = system.actorOf(new Props(Downloader.class), Downloader.ACTOR_NAME);
+    }  
 
     @After
     public void after() throws Exception {
@@ -64,7 +69,6 @@ public final class DownloaderTest {
     }
 
     @Test
-    @Ignore
     public void testGet() throws URISyntaxException, IOException {
         new JavaTestKit(system) {
             {
@@ -103,12 +107,11 @@ public final class DownloaderTest {
     }
 
     @Test
-    @Ignore
     public void testNotFound() throws URISyntaxException, IOException {
         new JavaTestKit(system) {
             {
                 final ActorRef observer = getRef();
-                final URI uri = URI.create("http://www.telestax.com/not-found.html");
+                final URI uri = URI.create("https://github.com/restcomm/not-found.html");
                 final String method = "GET";
                 final HttpRequestDescriptor request = new HttpRequestDescriptor(uri, method);
                 downloader.tell(request, observer);
@@ -116,7 +119,7 @@ public final class DownloaderTest {
                 final DownloaderResponse response = expectMsgClass(timeout, DownloaderResponse.class);
                 assertTrue(response.succeeded());
                 final HttpResponseDescriptor descriptor = response.get();
-                assertTrue(descriptor.getStatusCode() == 404);
+                assertEquals(404, descriptor.getStatusCode() );
             }
         };
     }

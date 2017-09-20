@@ -232,15 +232,7 @@ public final class SmsInterpreter extends RestcommUntypedActor {
     }
 
     private ActorRef downloader() {
-        final Props props = new Props(new UntypedActorFactory() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public UntypedActor create() throws Exception {
-                return new Downloader();
-            }
-        });
-        return getContext().actorOf(props);
+        return getContext().actorFor("akka://default/user/" + Downloader.ACTOR_NAME);
     }
 
     ActorRef mailer(final Configuration configuration) {

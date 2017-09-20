@@ -20,6 +20,10 @@
 
 package org.restcomm.connect.commons.configuration.sets.impl;
 
+import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import org.restcomm.connect.commons.annotations.concurrency.Immutable;
 import org.restcomm.connect.commons.configuration.sets.MainConfigurationSet;
 import org.restcomm.connect.commons.configuration.sources.ConfigurationSource;
@@ -41,9 +45,19 @@ public class MainConfigurationSetImpl extends ConfigurationSet implements MainCo
 
     private static final String SSL_MODE_KEY = "http-client.ssl-mode";
     private static final String HTTP_RESPONSE_TIMEOUT = "http-client.response-timeout";
+    private static final String HTTP_MAX_CONN_TOTAL = "http-client.max-conn-total";
+    private static final String HTTP_MAX_CONN_PER_ROUTE = "http-client.max-conn-per-route";
+    private static final String HTTP_CONNECTION_TIME_TO_LIVE = "http-client.connection-time-to-live";
+    private static final String HTTP_ROUTES_HOST = "http-client.routes-host";
+    private static final String HTTP_ROUTES_PORT = "http-client.routes-port";
+    private static final String HTTP_ROUTES_CONN = "http-client.routes-conn";
     private static final SslMode SSL_MODE_DEFAULT = SslMode.strict;
     private SslMode sslMode;
     private int responseTimeout;
+    private Integer defaultHttpMaxConns;
+    private Integer defaultHttpMaxConnsPerRoute;
+    private Integer defaultHttpTTL;
+    private Map<InetSocketAddress,Integer> defaultHttpRoutes = new HashMap();
     private static final String USE_HOSTNAME_TO_RESOLVE_RELATIVE_URL_KEY = "http-client.use-hostname-to-resolve-relative-url";
     private static final String HOSTNAME_TO_USE_FOR_RELATIVE_URLS_KEY = "http-client.hostname";
     private static final boolean RESOLVE_RELATIVE_URL_WITH_HOSTNAME_DEFAULT = true;
@@ -69,6 +83,42 @@ public class MainConfigurationSetImpl extends ConfigurationSet implements MainCo
         } catch (Exception e) {
             throw new RuntimeException("Error initializing '" + HTTP_RESPONSE_TIMEOUT + "' configuration setting", e);
         }
+        try {
+            defaultHttpMaxConns = Integer.parseInt(source.getProperty(HTTP_MAX_CONN_TOTAL,"2000"));
+        } catch (Exception e) {
+            throw new RuntimeException("Error initializing '" + HTTP_MAX_CONN_TOTAL + "' configuration setting", e);
+        }
+        try {
+            defaultHttpMaxConnsPerRoute = Integer.parseInt(source.getProperty(HTTP_MAX_CONN_PER_ROUTE,"100"));
+        } catch (Exception e) {
+            throw new RuntimeException("Error initializing '" + HTTP_MAX_CONN_PER_ROUTE + "' configuration setting", e);
+        }
+        try {
+            defaultHttpTTL = Integer.parseInt(source.getProperty(HTTP_CONNECTION_TIME_TO_LIVE,"30000"));
+        } catch (Exception e) {
+            throw new RuntimeException("Error initializing '" + HTTP_CONNECTION_TIME_TO_LIVE + "' configuration setting", e);
+        }
+        
+        try {
+            String delimiter = ",";
+            String routesHostProp = source.getProperty(HTTP_ROUTES_CONN,"");
+            String[] routesHostList = routesHostProp.split(delimiter);
+            String routesPortProp = source.getProperty(HTTP_ROUTES_PORT,"");
+            String[] routesPortList = routesPortProp.split(delimiter); 
+            String routesConnProp = source.getProperty(HTTP_ROUTES_CONN,"");
+            String[] routesConnList = routesConnProp.split(delimiter);
+            
+            for (int i = 0; i < routesHostList.length; i++) {
+               Integer port = Integer.valueOf(routesPortList[i]);
+               Integer conn = Integer.valueOf(routesConnList[i]);
+               InetSocketAddress addr = new InetSocketAddress(routesHostList[i], port);
+               defaultHttpRoutes.put(addr, conn);
+            }
+            
+        } catch (Throwable e) {//to catch array index out of bounds
+            throw new RuntimeException("Error initializing '" + HTTP_ROUTES_CONN + "' configuration setting", e);
+        }        
+        
         // http-client.ssl-mode
         try {
             sslMode = SSL_MODE_DEFAULT;
@@ -167,5 +217,25 @@ public class MainConfigurationSetImpl extends ConfigurationSet implements MainCo
     @Override
     public int getRecordingMaxDelay () {
         return recordingMaxDelay;
+    }
+
+    @Override
+    public Integer getDefaultHttpMaxConns() {
+        return defaultHttpMaxConns;
+    }
+
+    @Override
+    public Integer getDefaultHttpMaxConnsPerRoute() {
+        return defaultHttpMaxConnsPerRoute;
+    }
+
+    @Override
+    public Integer getDefaultHttpTTL() {
+        return defaultHttpTTL;
+    }
+
+    @Override
+    public Map<InetSocketAddress, Integer> getDefaultHttpRoutes() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

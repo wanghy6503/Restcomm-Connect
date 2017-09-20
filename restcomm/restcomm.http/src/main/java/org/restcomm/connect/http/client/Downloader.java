@@ -60,12 +60,17 @@ import java.util.List;
 public final class Downloader extends RestcommUntypedActor {
 
     public static final int LOGGED_RESPONSE_MAX_SIZE = 100;
+    
+    public static String ACTOR_NAME="restcomm.downloader";
+    
+    private CloseableHttpClient client = null;    
 
     // Logger.
     private final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
 
     public Downloader () {
         super();
+        client = (CloseableHttpClient) CustomHttpClientBuilder.build(RestcommConfiguration.getInstance().getMain());       
     }
 
     public HttpResponseDescriptor fetch (final HttpRequestDescriptor descriptor) throws IllegalArgumentException, IOException,
@@ -74,14 +79,10 @@ public final class Downloader extends RestcommUntypedActor {
         HttpRequest request = null;
         CloseableHttpResponse response = null;
         HttpRequestDescriptor temp = descriptor;
-        CloseableHttpClient client = null;
         HttpResponseDescriptor responseDescriptor = null;
         HttpResponseDescriptor rawResponseDescriptor = null;
         try {
             do {
-                client = (CloseableHttpClient) CustomHttpClientBuilder.build(RestcommConfiguration.getInstance().getMain());
-                //            client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
-//            client.getParams().setParameter("http.protocol.content-charset", "UTF-8");
                 request = request(temp);
                 request.setHeader("http.protocol.content-charset", "UTF-8");
 
@@ -129,8 +130,6 @@ public final class Downloader extends RestcommUntypedActor {
             throw e; // re-throw
         } finally {
             response.close();
-            HttpClientUtils.closeQuietly(client);
-            client = null;
         }
         return responseDescriptor;
     }
@@ -247,6 +246,9 @@ public final class Downloader extends RestcommUntypedActor {
     public void postStop () {
         if (logger.isDebugEnabled()) {
             logger.debug("Downloader at post stop");
+        }
+        if (client != null) {
+            HttpClientUtils.closeQuietly(client);
         }
         super.postStop();
     }
