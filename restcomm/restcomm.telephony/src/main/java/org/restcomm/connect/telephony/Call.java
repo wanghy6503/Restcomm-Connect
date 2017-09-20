@@ -20,8 +20,11 @@
 package org.restcomm.connect.telephony;
 
 import akka.actor.ActorRef;
+import akka.actor.Props;
 import akka.actor.ReceiveTimeout;
+import akka.actor.UntypedActor;
 import akka.actor.UntypedActorContext;
+import akka.actor.UntypedActorFactory;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import org.apache.commons.configuration.Configuration;
@@ -428,7 +431,15 @@ public final class Call extends RestcommUntypedActor {
     }
 
     ActorRef downloader() {
-        return getContext().actorFor("akka://default/user/" + Downloader.ACTOR_NAME);
+        final Props props = new Props(new UntypedActorFactory() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public UntypedActor create() throws Exception {
+                return new Downloader();
+            }
+        });
+        return getContext().actorOf(props);
     }
 
     private boolean is(State state) {

@@ -277,8 +277,16 @@ public class ConfVoiceInterpreter extends RestcommUntypedActor {
         return getContext().actorOf(props);
     }
 
-    private ActorRef downloader() {
-        return getContext().actorFor("akka://default/user/" + Downloader.ACTOR_NAME);
+    ActorRef downloader() {
+        final Props props = new Props(new UntypedActorFactory() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public UntypedActor create() throws Exception {
+                return new Downloader();
+            }
+        });
+        return getContext().actorOf(props);
     }
 
     private String e164(final String number) {
