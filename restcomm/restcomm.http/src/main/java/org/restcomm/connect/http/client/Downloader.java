@@ -34,7 +34,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.restcomm.connect.commons.common.http.CustomHttpClientBuilder;
@@ -53,6 +52,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -70,7 +73,7 @@ public final class Downloader extends RestcommUntypedActor {
         super();
         client = (CloseableHttpClient) CustomHttpClientBuilder.buildDefaultClient(RestcommConfiguration.getInstance().getMain());
     }
-    
+
 
     public HttpResponseDescriptor fetch (final HttpRequestDescriptor descriptor) throws IllegalArgumentException, IOException,
             URISyntaxException, XMLStreamException {
@@ -84,8 +87,16 @@ public final class Downloader extends RestcommUntypedActor {
             do {
                 request = request(temp);
                 request.setHeader("http.protocol.content-charset", "UTF-8");
-
-                response = client.execute((HttpUriRequest) request);
+                if (descriptor.getTimeout() > 0){
+                    HttpContext httpContext = new BasicHttpContext();
+                    httpContext.setAttribute(HttpClientContext.REQUEST_CONFIG, RequestConfig.custom().
+                    setConnectTimeout(descriptor.getTimeout()).
+                    setSocketTimeout(descriptor.getTimeout()).
+                    setConnectionRequestTimeout(descriptor.getTimeout()).build());
+                    response = client.execute((HttpUriRequest) request, httpContext);
+                } else {
+                    response = client.execute((HttpUriRequest) request);
+                }
                 code = response.getStatusLine().getStatusCode();
                 if (isRedirect(code)) {
                     final Header header = response.getFirstHeader(HttpHeaders.LOCATION);
