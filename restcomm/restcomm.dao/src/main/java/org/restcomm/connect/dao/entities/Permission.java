@@ -20,14 +20,18 @@
  */
 package org.restcomm.connect.dao.entities;
 
+import org.apache.shiro.authz.permission.WildcardPermission;
 import org.restcomm.connect.commons.dao.Sid;
 
-public class Permission {
+public class Permission extends WildcardPermission{
     private final Sid sid;
     private String name;
     public Permission(Sid sid, String name){
+        super(name);
         this.sid = sid;
         this.name = name;
+
+
     }
 
     /**
@@ -50,4 +54,15 @@ public class Permission {
     public void setName(String name) {
         this.name = name;
     }
+    @Override
+    public int hashCode() {
+        // TODO Auto-generated method stub
+        return super.hashCode();
+    }
+
+//    @Override
+//    public boolean implies(org.apache.shiro.authz.Permission p) {
+//
+//        return super.implies(p);
+//    }
 }

@@ -1,5 +1,7 @@
 package org.restcomm.connect.identity.permissions;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
@@ -7,9 +9,11 @@ import javax.servlet.ServletContext;
 import org.apache.log4j.Logger;
 import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleRole;
+
 import org.apache.shiro.authz.permission.WildcardPermissionResolver;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.exceptions.InsufficientPermission;
+import org.restcomm.connect.dao.entities.AccountPermission;
 import org.restcomm.connect.identity.AuthOutcome;
 import org.restcomm.connect.identity.IdentityContext;
 import org.restcomm.connect.identity.UserIdentityContext;
@@ -53,6 +57,7 @@ public class PermissionsUtil {
         //get account role
         //get account role permissions
         //get account permissions
+
         return null;
     }
     public AuthOutcome checkPermission(String neededPermissionString, Set<String> roleNames) {
@@ -60,35 +65,64 @@ public class PermissionsUtil {
         if ( roleNames.contains(getAdministratorRole()))
             return AuthOutcome.OK;
 
-        // normalize the permission string
-        //neededPermissionString = "domain:" + neededPermissionString;
-
         WildcardPermissionResolver resolver = new WildcardPermissionResolver();
         Permission neededPermission = resolver.resolvePermission(neededPermissionString);
-
+        //List<org.restcomm.connect.dao.entities.Permission> accountPermissions = this.userIdentityContext.getAccountPermissions();
+        List<org.restcomm.connect.dao.entities.Permission> accountPermissions = this.userIdentityContext.getAccountPermissions();
         // check the neededPermission against all roles of the user
         RestcommRoles restcommRoles = identityContext.getRestcommRoles();
+
+        //should get union of permissions
+        Set<Permission> allRolePermissions = new HashSet<Permission>();
         for (String roleName: roleNames) {
             SimpleRole simpleRole = restcommRoles.getRole(roleName);
             if ( simpleRole == null) {
-                return AuthOutcome.FAILED;
-            }
-            else {
-                Set<Permission> permissions = simpleRole.getPermissions();
-                // check the permissions one by one
-                for (Permission permission: permissions) {
-                    if (permission.implies(neededPermission)) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Granted access by permission " + permission.toString());
-                        }
-                        return AuthOutcome.OK;
-                    }
-                }
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Role " + roleName + " does not allow " + neededPermissionString);
+                logger.error(roleName+" doesnt exist");
+            }else{
+
+                try {
+                    Set<Permission> rolePermissions = simpleRole.getPermissions();
+
+                    allRolePermissions.addAll(rolePermissions);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    logger.debug(e);
                 }
             }
         }
+        for(org.restcomm.connect.dao.entities.Permission p: accountPermissions){
+            String name = p.getName();
+            //FIXME:cast problem??
+            AccountPermission ap = (AccountPermission)p;
+
+            //check if account permission is false and exists in rolePermissions
+            //if it does, remove it from rolePermissions
+            if(allRolePermissions.contains(ap) && ap.getValue()==false){
+                allRolePermissions.remove(ap);
+            }
+            //check if account permission is true and does not exist in rolePermissions
+            //add it to rolePermissions
+            if(!allRolePermissions.contains(ap) && ap.getValue()){
+                allRolePermissions.add(ap);
+            }
+        }
+        //check if neededPermission is implied in all permissions
+        //WildcardPermission checkPerm = new WildcardPermission(neededPermissionString);
+        //allRolePermissions.containsKey(checkPerm);
+        //allRolePermissions.implies(checkPerm);
+        //FIXME:can we not loop through this again?
+        for(Permission p : allRolePermissions){
+            if(p.implies(neededPermission)){
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Granted access by permission " + p.toString());
+                }
+                return AuthOutcome.OK;
+            }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("No permissions " + neededPermissionString);
+        }
+
         return AuthOutcome.FAILED;
     }
 

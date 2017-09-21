@@ -21,6 +21,7 @@
 package org.restcomm.connect.identity;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,9 +30,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+//import org.apache.shiro.authz.Permission;
 import org.restcomm.connect.dao.exceptions.AccountHierarchyDepthCrossed;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.entities.Account;
+import org.restcomm.connect.dao.entities.Permission;
+
 
 /**
  * A per-request security context providing access to Oauth tokens or Account API Keys.
@@ -140,4 +144,10 @@ public class UserIdentityContext {
         return accountLineage;
     }
 
+    public List<Permission> getAccountPermissions(){
+        //List<org.restcomm.connect.dao.entities.Permission> permissions = new ArrayList<org.restcomm.connect.dao.entities.Permission>();
+        List<Permission> permissions = new ArrayList<Permission>();
+        permissions = accountsDao.getAccountPermissions(effectiveAccount.getSid());
+        return permissions;
+    }
 }
