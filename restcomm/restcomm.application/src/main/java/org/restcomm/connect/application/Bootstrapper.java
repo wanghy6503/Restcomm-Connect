@@ -359,10 +359,10 @@ public final class Bootstrapper extends SipServlet implements SipServletListener
             } else {
                 logger.error("Monitoring Service is null");
             }
-            
+
             CloseableHttpClient buildDefaultClient = CustomHttpClientBuilder.buildDefaultClient(RestcommConfiguration.getInstance().getMain());
             context.setAttribute(CustomHttpClientBuilder.class.getName(), buildDefaultClient);
-            
+
             //Initialize Extensions
             Configuration extensionConfiguration = null;
             try {
